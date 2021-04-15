@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.hasan.uberclone.views.fragment.HomeFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home" />
+    <fragment
+        android:id="@+id/driverSignUpFragment"
+        android:name="com.hasan.uberclone.views.fragment.DriverSignUpFragment"
+        android:label="fragment_driver_login"
+        tools:layout="@layout/fragment_driver_sign_up" >
+        <action
+            android:id="@+id/action_driverSignUpFragment_to_verifyPhoneFragment"
+            app:destination="@id/verifyPhoneFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/signInFragment"
+        android:name="com.hasan.uberclone.views.fragment.SignInFragment"
+        android:label="fragment_sign_in"
+        tools:layout="@layout/fragment_sign_in" >
+        <action
+            android:id="@+id/action_signInFragment_to_driverSignUpFragment"
+            app:destination="@id/driverSignUpFragment" />
+        <action
+            android:id="@+id/action_signInFragment_to_verifyPhoneFragment"
+            app:destination="@id/verifyPhoneFragment" />
+        <action
+            android:id="@+id/action_signInFragment_to_userSignUpFragment"
+            app:destination="@id/userSignUpFragment" />
+
+    </fragment>
+    <fragment
+        android:id="@+id/userSignUpFragment"
+        android:name="com.hasan.uberclone.views.fragment.UserSignUpFragment"
+        android:label="fragment_sign_up"
+        tools:layout="@layout/fragment_user_sign_up" >
+        <action
+            android:id="@+id/action_userSignUpFragment_to_verifyPhoneFragment"
+            app:destination="@id/verifyPhoneFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/verifyPhoneFragment"
+        android:name="com.hasan.uberclone.views.fragment.VerifyPhoneFragment"
+        android:label="fragment_verify_phone"
+        tools:layout="@layout/fragment_verify_phone" >
+        <action
+            android:id="@+id/action_verifyPhoneFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+
+        <argument
+            android:name="phoneNumber"
+            app:argType="string"
+            android:defaultValue="0" />
+    </fragment>
+</navigation>
