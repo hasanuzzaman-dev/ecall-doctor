@@ -1,62 +1,31 @@
-package com.hasan.uberclone.views.fragment;
+package com.hasan.uberclone.views.fragment
 
-import android.content.Context;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.hasan.uberclone.R
+import com.hasan.uberclone.databinding.FragmentSignInBinding
+import com.hasan.uberclone.models.User
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
+class SignInFragment : Fragment(R.layout.fragment_sign_in) {
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.PhoneAuthProvider;
-import com.hasan.uberclone.databinding.FragmentSignInBinding;
-
-public class SignInFragment extends Fragment {
-
-    private static final String TAG = "SignInFragment";
-    private NavController navController;
-    private Context context;
-    private FragmentSignInBinding binding;
-    private FirebaseAuth firebaseAuth;
-    private PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks;
+    private lateinit var binding: FragmentSignInBinding
+    private lateinit var firebaseAuth: FirebaseAuth
 
 
-    public SignInFragment() {
-        // Required empty public constructor
-    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding = FragmentSignInBinding.bind(view)
+        val navController = findNavController()
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        this.context = context;
-    }
+        firebaseAuth = FirebaseAuth.getInstance()
+        binding.nextBtn.setOnClickListener {
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        // return inflater.inflate(R.layout.fragment_sign_in, container, false);
-
-        binding = FragmentSignInBinding.inflate(inflater, container, false);
-        return binding.getRoot();
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        navController = Navigation.findNavController(view);
-        firebaseAuth = FirebaseAuth.getInstance();
-
-        binding.nextBtn.setOnClickListener(view1 -> {
-
-            String countryCode = binding.countryCodePicker.getSelectedCountryCodeWithPlus();
-            String number = binding.phoneET.getEditText().getText().toString();
+            val countryCode = binding.countryCodePicker.selectedCountryCodeWithPlus
+            val number = binding.phoneET.editText!!.text.toString()
 
             /*String phoneNumber = "+15555215554";
 
@@ -65,29 +34,36 @@ public class SignInFragment extends Fragment {
             action.setPhoneNumber(phoneNumber);
             navController.navigate(action);*/
 
-            if (countryCode != null && !number.isEmpty()) {
+            if (countryCode != null && number.isNotEmpty()) {
+                val phoneNumber = countryCode + number
+                val user = User()
+                user.phoneNumber = phoneNumber
+                user.isNewRegistered = false
+                val action = SignInFragmentDirections.actionSignInFragmentToVerifyPhoneFragment(user)
+                //action.phoneNumber = phoneNumber
+                navController.navigate(action)
+                Log.d(TAG, "Phone Number : $phoneNumber")
 
-                String phoneNumber = countryCode + number;
-
-
-                SignInFragmentDirections.ActionSignInFragmentToVerifyPhoneFragment action = SignInFragmentDirections.actionSignInFragmentToVerifyPhoneFragment();
-                action.setPhoneNumber(phoneNumber);
-                navController.navigate(action);
-
-                Log.d(TAG, "Phone Number : " + phoneNumber);
                 /*SignInFragmentDirections action = SignInFragmentDirections.actionSignInFragmentToVerifyPhoneFragment();
-                action.setPhoneNumber(phoneNumber);
-                navController.navigate(action);
+                    action.setPhoneNumber(phoneNumber);
+                    navController.navigate(action);
 
-                Log.d(TAG, "Phone Number : " + phoneNumber);*/
+                    Log.d(TAG, "Phone Number : " + phoneNumber);*/
             }
+        }
+        binding.gotoDriverSignUPFragmentTV.setOnClickListener {
+            val action = SignInFragmentDirections.actionSignInFragmentToDriverSignUpFragment()
+            navController.navigate(action)
+        }
 
-        });
+        binding.gotoUserSignUPFragmentTV.setOnClickListener {
+            val action = SignInFragmentDirections.actionSignInFragmentToUserSignUpFragment()
+            navController.navigate(action)
 
-        binding.gotoDriverSignUPFragmentTV.setOnClickListener(view1 -> {
+        }
+    }
 
-        });
-
-
+    companion object {
+        private const val TAG = "SignInFragment"
     }
 }

@@ -1,123 +1,110 @@
-package com.hasan.uberclone.views.fragment;
+package com.hasan.uberclone.views.fragment
 
-import android.content.Context;
-import android.os.Bundle;
-import android.util.Patterns;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.os.Bundle
+import android.util.Log
+import android.util.Patterns
+import android.view.View
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.google.firebase.database.DatabaseReference
+import com.hasan.uberclone.R
+import com.hasan.uberclone.databinding.FragmentUserSignUpBinding
+import com.hasan.uberclone.models.User
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
+class UserSignUpFragment : Fragment(R.layout.fragment_user_sign_up) {
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.annotations.NotNull;
-import com.hasan.uberclone.databinding.FragmentUserSignUpBinding;
+    private lateinit var binding: FragmentUserSignUpBinding
 
-
-public class UserSignUpFragment extends Fragment {
+    private lateinit var firstName: String
+    private lateinit var lastName: String
+    private lateinit var email: String
 
 
-    private static final String TAG = "UserSignUpFragment";
-    private NavController navController;
-    private Context context;
-    private FragmentUserSignUpBinding binding;
-    private FirebaseAuth firebaseAuth;
-    private String firstName, lastName, email;
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding = FragmentUserSignUpBinding.bind(view)
+        val navController = findNavController()
 
-    public UserSignUpFragment() {
-        // Required empty public constructor
-    }
+        with(binding) {
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        this.context = context;
-    }
+            signUpBtn.setOnClickListener(View.OnClickListener {
+                /*  if (!validateFirstName() or !validateLastName() or !validateEmail()) {
+                      return@OnClickListener
+                  }*/
 
-    @Override
-    public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        //return inflater.inflate(R.layout.fragment_sign_up, container, false);
-        binding = FragmentUserSignUpBinding.inflate(inflater, container, false);
-        return binding.getRoot();
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        navController = Navigation.findNavController(view);
-
-        firebaseAuth = FirebaseAuth.getInstance();
-
-        binding.signUpBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                if (!validateFirstName() | !validateLastName() | !validateEmail()) {
-                    return;
+                if (!validateFirstName() or !validateLastName() or !validateEmail()) {
+                    return@OnClickListener
                 }
-
-                binding.progressbar.setVisibility(View.VISIBLE);
-
-             /*   VerifyPhoneFragmentArgs args = VerifyPhoneFragmentArgs.fromBundle(getArguments());
-                String phoneNumber = args.getPhoneNumber();*/
-
-                FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-                String currentUserId = firebaseUser.getUid();
-
-                //UserRegistration userRegistration = new UserRegistration(currentUserId, 1, name, phoneNumber, email);
-
-                //  UserRegistration userRegistration = new UserRegistration("RDNdJrLcMBcz3FMWD2nsV4Qbski2", 1, name, "+8801713288634", email);
+                binding.progressbar.visibility = View.VISIBLE
 
 
+                val phoneNumber = phoneET.editText?.text.toString()
+                val gender = genderAutoTextView.text.toString()
+                val dateOfBirth = dateOfBirthTextInputEditText.editText?.text.toString()
+                val inputType = "customer"
+                val termsAndCondition = radioButton.isChecked
+                val user = User()
+                user.firstName = firstName
+                user.lastName = lastName
+                user.email = email
+                user.phoneNumber = phoneNumber
+                user.gender = gender
+                user.dateOfBirth = dateOfBirth
+                user.userType = inputType
+                user.isTermsAndCondition = termsAndCondition
+                user.isNewRegistered = true
 
 
-            }
-        });
+                val action = UserSignUpFragmentDirections.actionUserSignUpFragmentToVerifyPhoneFragment(user)
+                navController.navigate(action)
+
+                Log.d(TAG, "onViewCreated: User : ${user.toString()}")
+
+
+            })
+
+        }
 
     }
 
-    private boolean validateFirstName() {
-        firstName = binding.firstNameET.getEditText().getText().toString().trim();
-        if (firstName.isEmpty()) {
-            binding.firstNameET.setError("Field can't be empty!");
-            return false;
+    private fun validateFirstName(): Boolean {
+        firstName = binding.firstNameET.editText!!.text.toString().trim()
+        return if (firstName.isEmpty()) {
+            binding.firstNameET.error = "Field can't be empty!"
+            false
         } else {
-            binding.firstNameET.setError(null);
-            return true;
+            binding.firstNameET.error = null
+            true
         }
     }
 
-    private boolean validateLastName() {
-        lastName = binding.lastNameET.getEditText().getText().toString().trim();
-        if (lastName.isEmpty()) {
-            binding.lastNameET.setError("Field can't be empty!");
-            return false;
+    private fun validateLastName(): Boolean {
+        lastName = binding.lastNameET.editText!!.text.toString().trim()
+        return if (lastName.isEmpty()) {
+            binding.lastNameET.error = "Field can't be empty!"
+            false
         } else {
-            binding.lastNameET.setError(null);
-            return true;
+            binding.lastNameET.error = null
+            true
         }
     }
 
-    private boolean validateEmail() {
-        email = binding.emailET.getEditText().getText().toString().trim();
-        if (email.isEmpty()) {
-            binding.emailET.setError("Field can't be empty!");
-            return false;
+    private fun validateEmail(): Boolean {
+        email = binding.emailET.editText!!.text.toString().trim()
+        return if (email.isEmpty()) {
+            binding.emailET.error = "Field can't be empty!"
+            false
         } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.emailET.setError("Please enter a valid email address!");
-            return false;
+            binding.emailET.error = "Please enter a valid email address!"
+            false
         } else {
-            binding.emailET.setError(null);
-            return true;
+            binding.emailET.error = null
+            true
         }
+    }
+
+    companion object {
+        private const val TAG = "UserSignUpFragment"
     }
 }

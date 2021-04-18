@@ -11,9 +11,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDirections;
 import androidx.navigation.Navigation;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -27,11 +26,11 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.annotations.NotNull;
-
 import com.hasan.uberclone.databinding.FragmentVerifyPhoneBinding;
-
-
+import com.hasan.uberclone.models.User;
+import com.hasan.uberclone.myConstants.MyConstants;
 
 import java.util.concurrent.TimeUnit;
 
@@ -45,8 +44,9 @@ public class VerifyPhoneFragment extends Fragment {
     private Context context;
     private String verificationCodeBySystem;
     private String phoneNumber;
+    private User user;
 
-    private Boolean isRegistered;
+    private DatabaseReference databaseReference;
 
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks;
 
@@ -79,17 +79,13 @@ public class VerifyPhoneFragment extends Fragment {
         firebaseAuth = FirebaseAuth.getInstance();
 
 
+        binding.verifyBtn.setOnClickListener(view1 -> {
+            String otp = binding.otpView.getText().toString();
+            Log.d(TAG, "OTP : " + otp);
 
-        binding.verifyBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String otp = binding.otpView.getText().toString();
-                Log.d(TAG, "OTP : "+otp);
+            binding.progressbar.setVisibility(View.VISIBLE);
+            verifyCode(otp);
 
-                binding.progressbar.setVisibility(View.VISIBLE);
-                verifyCode(otp);
-
-            }
         });
 
 
@@ -150,10 +146,22 @@ public class VerifyPhoneFragment extends Fragment {
 
         if (getArguments() != null) {
 
-          /*  VerifyPhoneFragmentArgs args = VerifyPhoneFragmentArgs.fromBundle(getArguments());
+            VerifyPhoneFragmentArgs args = VerifyPhoneFragmentArgs.fromBundle(getArguments());
+            user = args.getUser();
 
-            phoneNumber = args.getPhoneNumber();
+            phoneNumber = args.getUser().getPhoneNumber();
 
+            Log.d(TAG, "Phone Number: " + phoneNumber);
+            PhoneAuthOptions authOptions = PhoneAuthOptions.newBuilder(firebaseAuth)
+                    .setPhoneNumber(phoneNumber)
+                    .setTimeout(120L, TimeUnit.SECONDS)
+                    .setActivity(requireActivity())
+                    .setCallbacks(callbacks)
+                    .build();
+
+            PhoneAuthProvider.verifyPhoneNumber(authOptions);
+
+            /*
             verifyViewModel.getPatientIsRegistered(phoneNumber).observe(getViewLifecycleOwner(), new Observer<Boolean>() {
                 @Override
                 public void onChanged(Boolean aBoolean) {
@@ -193,7 +201,34 @@ public class VerifyPhoneFragment extends Fragment {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
-                            FirebaseUser user = task.getResult().getUser();
+                            FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                            String userId = firebaseUser.getUid();
+
+                            if (user.isNewRegistered()) {
+                                user.setUserId(userId);
+                                DatabaseReference userRef = MyConstants.DB_REF.child("user");
+
+
+                                userRef.child(userId).setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        Log.d(TAG, "onComplete: " + user.toString());
+                                        if (user.getUserType().equals("customer")) {
+                                            databaseReference =  MyConstants.DB_REF.child("RegisteredUserId").child("customer").child(userId);
+                                        } else {
+                                            databaseReference =  MyConstants.DB_REF.child("RegisteredUserId").child("driver").child(userId);
+                                        }
+                                        databaseReference.setValue(true);
+                                    }
+                                });
+                            }
+
+                            NavDirections action = VerifyPhoneFragmentDirections.actionVerifyPhoneFragmentToHomeFragment();
+                            navController.navigate(action);
+
+
+                            // or navController.navigate(R.id.action_verifyPhoneFragment_to_homeFragment);
+
 
                             //boolean isRegistered = false;
 

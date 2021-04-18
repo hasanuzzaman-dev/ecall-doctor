@@ -1,9 +1,13 @@
 package com.hasan.uberclone.models;
 
-public class UserRegistration {
+import org.jetbrains.annotations.NotNull;
 
-    private String RegistrationCode;
-    private int UserType;
+import java.io.Serializable;
+
+public class User implements Serializable {
+
+    private String userId;
+    private String userType;
     private String firstName;
     private String lastName;
     private String PhoneNumber;
@@ -11,15 +15,16 @@ public class UserRegistration {
     private String gender;
     private String dateOfBirth;
     private boolean termsAndCondition;
+    private boolean isNewRegistered;
 
-    public UserRegistration() {
+    public User() {
     }
 
-    public UserRegistration(String registrationCode, int userType, String firstName, String lastName,
-                            String phoneNumber, String email, String gender,
-                            String dateOfBirth, boolean termsAndCondition) {
-        RegistrationCode = registrationCode;
-        UserType = userType;
+    public User(String userId, String userType, String firstName, String lastName,
+                String phoneNumber, String email, String gender,
+                String dateOfBirth, boolean termsAndCondition,boolean isNewRegistered) {
+        this.userId = userId;
+        this.userType = userType;
         this.firstName = firstName;
         this.lastName = lastName;
         PhoneNumber = phoneNumber;
@@ -27,22 +32,23 @@ public class UserRegistration {
         this.gender = gender;
         this.dateOfBirth = dateOfBirth;
         this.termsAndCondition = termsAndCondition;
+        this.isNewRegistered = isNewRegistered;
     }
 
-    public String getRegistrationCode() {
-        return RegistrationCode;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setRegistrationCode(String registrationCode) {
-        RegistrationCode = registrationCode;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
-    public int getUserType() {
-        return UserType;
+    public String getUserType() {
+        return userType;
     }
 
-    public void setUserType(int userType) {
-        UserType = userType;
+    public void setUserType(String userType) {
+        this.userType = userType;
     }
 
     public String getFirstName() {
@@ -101,11 +107,20 @@ public class UserRegistration {
         this.termsAndCondition = termsAndCondition;
     }
 
+    public boolean isNewRegistered() {
+        return isNewRegistered;
+    }
+
+    public void setNewRegistered(boolean newRegistered) {
+        isNewRegistered = newRegistered;
+    }
+
+    @NotNull
     @Override
     public String toString() {
-        return "UserRegistration{" +
-                "RegistrationCode='" + RegistrationCode + '\'' +
-                ", UserType=" + UserType +
+        return "User{" +
+                "userId='" + userId + '\'' +
+                ", userType=" + userType +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", PhoneNumber='" + PhoneNumber + '\'' +
@@ -113,6 +128,7 @@ public class UserRegistration {
                 ", gender='" + gender + '\'' +
                 ", dateOfBirth='" + dateOfBirth + '\'' +
                 ", termsAndCondition=" + termsAndCondition +
+                ", isNewRegistered=" + isNewRegistered +
                 '}';
     }
 }

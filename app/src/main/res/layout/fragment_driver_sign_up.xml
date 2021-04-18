@@ -138,7 +138,7 @@
 
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/addressET"
+            android:id="@+id/dateOfBirth_textInput_edit_text"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -166,8 +166,8 @@
             android:layout_height="wrap_content"
             android:text="Accepting Legal &amp; Terms"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="@+id/addressET"
-            app:layout_constraintTop_toBottomOf="@+id/addressET" />
+            app:layout_constraintStart_toStartOf="@+id/dateOfBirth_textInput_edit_text"
+            app:layout_constraintTop_toBottomOf="@+id/dateOfBirth_textInput_edit_text" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/terms_and_condition_layout"
