@@ -68,6 +68,9 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
 
+    //location
+    implementation 'com.google.android.gms:play-services-location:18.0.0'
+
     // image library
     implementation 'com.squareup.picasso:picasso:2.71828'
 
