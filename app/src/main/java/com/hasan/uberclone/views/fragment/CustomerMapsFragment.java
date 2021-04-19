@@ -1,12 +1,17 @@
 package com.hasan.uberclone.views.fragment;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Geocoder;
 import android.location.Location;
@@ -19,23 +24,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
-import com.google.android.gms.common.api.ResolvableApiException;
+import com.firebase.geofire.GeoQuery;
+import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -44,18 +41,15 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.hasan.uberclone.R;
+import com.hasan.uberclone.databinding.FragmentCustomerMapsBinding;
 import com.hasan.uberclone.myConstants.MyConstants;
 
-public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
+public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback{
+
 
     private static final String TAG = "DriverMapsFragment";
     private FusedLocationProviderClient fusedLocationProviderClient;
@@ -64,9 +58,13 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
     private Geocoder geocoder;
     private GoogleMap mMap;
     private String currentUserId;
-    private  DatabaseReference driverRef;
+    private DatabaseReference customerRequestRef;
     private LocationRequest locationRequest;
     private Marker userLocationMarker;
+    private FragmentCustomerMapsBinding binding;
+    private Location lastLocation;
+    private LatLng pickupLatLng;
+
 
 
     @Override
@@ -75,23 +73,26 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
         this.context = context;
     }
 
+
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_driver_maps, container, false);
+        //return inflater.inflate(R.layout.fragment_customer_maps, container, false);
+        binding = FragmentCustomerMapsBinding.inflate(inflater,container,false);
+        return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SupportMapFragment mapFragment =
-                (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
 
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        driverRef= MyConstants.DB_REF.child("driverAvailable");
+        customerRequestRef= MyConstants.DB_REF.child("customerRequest");
 
         geocoder = new Geocoder(context);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
@@ -102,6 +103,73 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
 
+        binding.requestUberBtn.setOnClickListener(view1 -> {
+            GeoFire geoFire = new GeoFire(customerRequestRef);
+            geoFire.setLocation(
+                    currentUserId,
+                    new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()),
+                    new GeoFire.CompletionListener() {
+                        @Override
+                        public void onComplete(String key, DatabaseError error) {
+                            Log.d(TAG, "lastLocation: latitude "+lastLocation.getLatitude()+" longitude "+lastLocation.getLongitude());
+                        }
+                    }
+            );
+
+            pickupLatLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+            mMap.addMarker(new MarkerOptions().position(pickupLatLng).title("Pickup here"));
+            binding.requestUberBtn.setText("Getting your Driver.........");
+
+            getClosestDriver();
+        });
+
+
+    }
+
+    private int radius = 1;
+    private boolean driverFound = false;
+    private String driverFoundId;
+
+    private void getClosestDriver() {
+        DatabaseReference driverRef = MyConstants.DB_REF.child("driverAvailable");
+        GeoFire geoFire = new GeoFire(driverRef);
+
+        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()),radius);
+        geoQuery.removeAllListeners();
+
+        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+            @Override
+            public void onKeyEntered(String key, GeoLocation location) {
+                if (!driverFound){
+                    driverFound = true;
+                    driverFoundId = key;
+                }
+            }
+
+            @Override
+            public void onKeyExited(String key) {
+
+            }
+
+            @Override
+            public void onKeyMoved(String key, GeoLocation location) {
+
+            }
+
+            @Override
+            public void onGeoQueryReady() {
+                if (!driverFound){
+                    radius++;
+                    getClosestDriver();
+                }
+
+            }
+
+            @Override
+            public void onGeoQueryError(DatabaseError error) {
+
+            }
+        });
     }
 
     @Override
@@ -144,15 +212,22 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
             super.onLocationResult(locationResult);
 
             if (mMap != null){
-                setUserLocationMarker(locationResult.getLastLocation());
+                lastLocation = locationResult.getLastLocation();
+                //setUserLocationMarker(lastLocation);
+                setCameraToUser(lastLocation);
             }
         }
     };
 
+    private void setCameraToUser(Location lastLocation) {
+        LatLng latLng = new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude());
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,17));
+    }
+
     private void setUserLocationMarker(Location location) {
         LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
 
-        GeoFire geoFire = new GeoFire(driverRef);
+        /*GeoFire geoFire = new GeoFire(customerRequestRef);
         geoFire.setLocation(
                 currentUserId,
                 new GeoLocation(location.getLatitude(), location.getLongitude()),
@@ -162,12 +237,12 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
                         Log.d(TAG, "onComplete: complete");
                     }
                 }
-        );
+        );*/
 
         if (userLocationMarker == null){
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(latLng);
-            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.car));
+           // markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.car));
 
             // direction of image
             //markerOptions.rotation(location.getBearing());
@@ -189,36 +264,6 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
 
     }
 
-/*    LocationCallback locationCallback = new LocationCallback() {
-        @Override
-        public void onLocationResult(LocationResult locationResult) {
-            if (locationResult == null) {
-                return;
-            }
-            for (Location location : locationResult.getLocations()) {
-                Log.d(TAG, "onLocationResult: " + location.toString());
-
-                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.addMarker(new MarkerOptions().position(latLng).title("Driver"));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,14));
-
-
-                GeoFire geoFire = new GeoFire(driverRef);
-                geoFire.setLocation(
-                        currentUserId,
-                        new GeoLocation(location.getLatitude(), location.getLongitude()),
-                        new GeoFire.CompletionListener() {
-                            @Override
-                            public void onComplete(String key, DatabaseError error) {
-                                Log.d(TAG, "onComplete: complete");
-                            }
-                        }
-                );
-            }
-        }
-    };*/
-
-
     @Override
     public void onStart() {
         super.onStart();
@@ -233,7 +278,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
         stopLocationUpdate();
 
 
-        GeoFire geoFire = new GeoFire(driverRef);
+        GeoFire geoFire = new GeoFire(customerRequestRef);
         geoFire.removeLocation(currentUserId, new GeoFire.CompletionListener() {
             @Override
             public void onComplete(String key, DatabaseError error) {
@@ -295,6 +340,5 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
         intent.setData(uri);
         startActivity(intent);
     }
-
 
 }

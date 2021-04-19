@@ -89,6 +89,9 @@ dependencies {
     implementation "androidx.core:core-ktx:+"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
+    //Geofire
+    implementation 'com.firebase:geofire-java:3.0.0'
+
 
 }
 repositories {

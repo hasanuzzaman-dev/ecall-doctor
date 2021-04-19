@@ -57,6 +57,7 @@ public class HomeFragment extends Fragment {
         });
 
         binding.driverBtn.setOnClickListener(view1 -> navController.navigate(R.id.driverMapsFragment));
+        binding.customerBtn.setOnClickListener(view1 -> navController.navigate(R.id.customerMapsFragment));
 
 
     }

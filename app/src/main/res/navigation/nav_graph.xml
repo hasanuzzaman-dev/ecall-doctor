@@ -15,6 +15,12 @@
             app:destination="@id/signInFragment"
             app:popUpTo="@id/nav_graph"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_homeFragment_to_customerMapsFragment"
+            app:destination="@id/customerMapsFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_driverMapsFragment"
+            app:destination="@id/driverMapsFragment" />
     </fragment>
     <fragment
         android:id="@+id/driverSignUpFragment"
@@ -73,4 +79,9 @@
         android:name="com.hasan.uberclone.views.fragment.DriverMapsFragment"
         android:label="fragment_driver_maps"
         tools:layout="@layout/fragment_driver_maps" />
+    <fragment
+        android:id="@+id/customerMapsFragment"
+        android:name="com.hasan.uberclone.views.fragment.CustomerMapsFragment"
+        android:label="fragment_customer_maps"
+        tools:layout="@layout/fragment_customer_maps" />
 </navigation>
