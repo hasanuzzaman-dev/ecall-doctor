@@ -61,10 +61,21 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
     private Geocoder geocoder;
     private GoogleMap mMap;
     private String currentDriverId;
-    private DatabaseReference driverRef;
+    private DatabaseReference driverAvailableRef;
     private LocationRequest locationRequest;
     private Marker userLocationMarker;
     private String customerId = "";
+
+    LocationCallback locationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(@NonNull LocationResult locationResult) {
+            super.onLocationResult(locationResult);
+
+            if (mMap != null) {
+                setDriverLocationMarker(locationResult.getLastLocation());
+            }
+        }
+    };
 
 
     @Override
@@ -92,7 +103,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
 
 
         currentDriverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        driverRef = MyConstants.DB_REF.child("driverAvailable");
+        driverAvailableRef = MyConstants.DB_REF.child("driverAvailable");
 
         geocoder = new Geocoder(context);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
@@ -101,31 +112,6 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
         locationRequest.setFastestInterval(2000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-      /*  binding.getAddressBtn.setOnClickListener(view1 -> {
-            DatabaseReference driverAvailableRef = MyConstants.DB_REF.child("driverAvailable").child("nD87HlytL4Mz6VjBjwYwlBdLqi33");
-
-            driverAvailableRef.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()){
-                        Log.d(TAG, "onDataChange: "+snapshot.getValue());
-                        AvailableLocation availableLocation = snapshot.getValue(AvailableLocation.class);
-                        Log.d(TAG, "onDataChange: "+availableLocation.toString());
-                       *//* UserLocation userLocation =  snapshot.getValue(UserLocation.class);
-                        Log.d(TAG, "userLocation: "+userLocation.toString());
-                       for (DataSnapshot dataSnapshot:snapshot.getChildren()){
-                           UserLocation userLocation2 =  dataSnapshot.getValue(UserLocation.class);
-                           Log.d(TAG, "userLocation: "+userLocation2.toString());
-                       }*//*
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
-        });*/
 
         getAssignedCustomer();
 
@@ -133,17 +119,20 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void getAssignedCustomer() {
-        DatabaseReference assignedCustomerRef = MyConstants.DB_REF.child("RegisteredUserId").child("driver").child(currentDriverId);
+        DatabaseReference assignedCustomerRef = MyConstants.DB_REF.child("RegisteredUserId")
+                .child("driver").child(currentDriverId).child("customerRideId");
         assignedCustomerRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    Map<String, Object> map = (Map<String, Object>) snapshot.getValue();
+                    customerId = snapshot.getValue().toString();
+                    getAssignedCustomerPickupLocation();
+                    /*Map<String, Object> map = (Map<String, Object>) snapshot.getValue();
                     if (map.get("customerRideId") != null) {
                         customerId = map.get("customerRideId").toString();
 
                         getAssignedCustomerPickupLocation();
-                    }
+                    }*/
                 }
             }
 
@@ -159,10 +148,18 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
         assignCustomerPickupLocationRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()){
+                if (dataSnapshot.exists()) {
                     UserLocation requestLocation = dataSnapshot.getValue(UserLocation.class);
+                    if (requestLocation != null) {
 
-                    //double latitude =
+                        double latitude = requestLocation.getL().get(0);
+                        double longitude = requestLocation.getL().get(1);
+
+                        LatLng latLng = new LatLng(latitude, longitude);
+
+                        mMap.addMarker(new MarkerOptions().position(latLng).title("Pickup Location"));
+                    }
+
                 }
             }
 
@@ -208,33 +205,12 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
 
     }
 
-    LocationCallback locationCallback = new LocationCallback() {
-        @Override
-        public void onLocationResult(@NonNull LocationResult locationResult) {
-            super.onLocationResult(locationResult);
 
-            if (mMap != null){
-                setUserLocationMarker(locationResult.getLastLocation());
-            }
-        }
-    };
+    private void setDriverLocationMarker(Location location) {
 
-    private void setUserLocationMarker(Location location) {
-        LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-        GeoFire geoFire = new GeoFire(driverRef);
-        geoFire.setLocation(
-                currentDriverId,
-                new GeoLocation(location.getLatitude(), location.getLongitude()),
-                new GeoFire.CompletionListener() {
-                    @Override
-                    public void onComplete(String key, DatabaseError error) {
-                        Log.d(TAG, "onComplete: complete");
-                    }
-                }
-        );
-
-        if (userLocationMarker == null){
+        if (userLocationMarker == null) {
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(latLng);
             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.car));
@@ -246,47 +222,58 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
             // markerOptions.anchor((float) 0.5, (float) 0.5);
 
             userLocationMarker = mMap.addMarker(markerOptions);
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,17));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
 
-        }else {
+        } else {
             userLocationMarker.setPosition(latLng);
 
             // direction of image
             //userLocationMarker.setRotation(location.getBearing());
 
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,17));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
         }
+
+        // Fro available driver
+        GeoFire geoFireDriverAvailable = new GeoFire(driverAvailableRef);
+
+
+        // For working driver
+        DatabaseReference driverWorkingRef = MyConstants.DB_REF.child("driverWorking");
+        GeoFire geoFireDriverWorking = new GeoFire(driverWorkingRef);
+
+
+        switch (customerId){
+            case "":
+                geoFireDriverWorking.removeLocation(currentDriverId, (key, error) -> Log.d(TAG, "onComplete: " + key + " geoFireDriverWorking removed"));
+                geoFireDriverAvailable.setLocation(currentDriverId,
+                        new GeoLocation(location.getLatitude(), location.getLongitude()),
+                        (key, error) -> Log.d(TAG, "Driver Available"));
+                break;
+            default:
+                geoFireDriverAvailable.removeLocation(currentDriverId, (key, error) -> Log.d(TAG, "onComplete: " + key + " geoFireDriverAvailable removed"));
+                geoFireDriverWorking.setLocation(currentDriverId,
+                        new GeoLocation(location.getLatitude(), location.getLongitude()),
+                        (key, error) -> Log.d(TAG, "Driver Working")
+                );
+                break;
+        }
+        /*if (customerId == null) {
+            geoFireDriverWorking.removeLocation(currentDriverId, (key, error) -> Log.d(TAG, "onComplete: " + key + " removed"));
+            geoFireDriverAvailable.setLocation(currentDriverId,
+                    new GeoLocation(location.getLatitude(), location.getLongitude()),
+                    (key, error) -> Log.d(TAG, "onComplete: complete"));
+        } else {
+            geoFireDriverAvailable.removeLocation(currentDriverId, (key, error) -> Log.d(TAG, "onComplete: " + key + " removed"));
+            geoFireDriverWorking.setLocation(currentDriverId,
+                    new GeoLocation(location.getLatitude(), location.getLongitude()),
+                    (key, error) -> Log.d(TAG, "onComplete: complete")
+            );
+        }*/
+
 
     }
 
-/*    LocationCallback locationCallback = new LocationCallback() {
-        @Override
-        public void onLocationResult(LocationResult locationResult) {
-            if (locationResult == null) {
-                return;
-            }
-            for (Location location : locationResult.getLocations()) {
-                Log.d(TAG, "onLocationResult: " + location.toString());
 
-                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.addMarker(new MarkerOptions().position(latLng).title("Driver"));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,14));
-
-
-                GeoFire geoFire = new GeoFire(driverRef);
-                geoFire.setLocation(
-                        currentDriveId,
-                        new GeoLocation(location.getLatitude(), location.getLongitude()),
-                        new GeoFire.CompletionListener() {
-                            @Override
-                            public void onComplete(String key, DatabaseError error) {
-                                Log.d(TAG, "onComplete: complete");
-                            }
-                        }
-                );
-            }
-        }
-    };*/
 
 
     @Override
@@ -303,13 +290,8 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
         stopLocationUpdate();
 
 
-        GeoFire geoFire = new GeoFire(driverRef);
-        geoFire.removeLocation(currentDriverId, new GeoFire.CompletionListener() {
-            @Override
-            public void onComplete(String key, DatabaseError error) {
-                Log.d(TAG, "onComplete: Stopped");
-            }
-        });
+       /* GeoFire geoFire = new GeoFire(driverAvailableRef);
+        geoFire.removeLocation(currentDriverId, (key, error) -> Log.d(TAG, "onComplete: Stopped"));*/
     }
 
 

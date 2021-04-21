@@ -149,6 +149,7 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
                     driverFound = true;
                     driverFoundId = key;
 
+                    // Tell the driver which customer you must pickup
                     DatabaseReference driverFoundRef = MyConstants.DB_REF.child("RegisteredUserId").child("driver").child(driverFoundId);
                     HashMap map = new HashMap();
                     map.put("customerRideId",currentUserId);
@@ -186,6 +187,7 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
     }
 
     private Marker driverMarker;
+
     //Show driver location customer map
     private void showDriverLocation() {
 
