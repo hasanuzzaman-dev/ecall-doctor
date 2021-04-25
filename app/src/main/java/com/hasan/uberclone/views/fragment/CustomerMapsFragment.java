@@ -1,11 +1,5 @@
 package com.hasan.uberclone.views.fragment;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -24,6 +18,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
@@ -37,7 +37,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -56,7 +55,7 @@ import java.util.List;
 public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback{
 
 
-    private static final String TAG = "DriverMapsFragment";
+    private static final String TAG = "CustomerMapsFragment";
     private FusedLocationProviderClient fusedLocationProviderClient;
     private int LOCATION_REQUEST_CODE = 1001;
     private Context context;
@@ -97,7 +96,8 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
         }
 
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        customerRequestRef= MyConstants.DB_REF.child("customerRequest");
+        customerRequestRef = MyConstants.DB_REF.child("customerRequest");
+        Log.d(TAG, "onViewCreated: " + currentUserId);
 
         geocoder = new Geocoder(context);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
@@ -155,7 +155,7 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
                     map.put("customerRideId",currentUserId);
                     driverFoundRef.updateChildren(map);
 
-                    showDriverLocation();
+                    getDriverLocation();
                     binding.requestUberBtn.setText("Looking for driver location........");
                 }
             }
@@ -189,30 +189,51 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
     private Marker driverMarker;
 
     //Show driver location customer map
-    private void showDriverLocation() {
+    private void getDriverLocation() {
+        Log.d(TAG, "driverFoundId: " + driverFoundId);
 
         DatabaseReference driverLocationRef = MyConstants.DB_REF.child("driverWorking").child(driverFoundId).child("l");
         driverLocationRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()){
+                if (dataSnapshot.exists()) {
                     List<Object> map = (List<Object>) dataSnapshot.getValue();
                     double driverLat = 0.0;
                     double driverLng = 0.0;
-                    binding.requestUberBtn.setText("Driver Found");
+
 
                     if (map.get(0) != null){
                         driverLat = Double.parseDouble(map.get(0).toString());
-                    }if (map.get(1) != null){
+                    }
+                    if (map.get(1) != null) {
                         driverLng = Double.parseDouble(map.get(1).toString());
                     }
-                    LatLng driverLatLng = new LatLng(driverLat,driverLng);
+                    LatLng driverLatLng = new LatLng(driverLat, driverLng);
 
-                    if (driverMarker != null){
+                    if (driverMarker != null) {
                         driverMarker.remove();
                     }
 
+                    Location customerLocation = new Location("");
+                    customerLocation.setLatitude(pickupLatLng.latitude);
+                    customerLocation.setLongitude(pickupLatLng.longitude);
+
+                    Location driverLocation = new Location("");
+                    driverLocation.setLatitude(driverLatLng.latitude);
+                    driverLocation.setLongitude(driverLatLng.longitude);
+
+                    float distance = customerLocation.distanceTo(driverLocation);
+
+                    if (distance < 100) {
+                        binding.requestUberBtn.setText("Driver's Here");
+                        binding.requestUberBtn.setClickable(false);
+                    } else {
+                        binding.requestUberBtn.setText("Driver Found: " + distance);
+                    }
+
                     driverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng).title("Your Driver"));
+                } else {
+                    Log.d(TAG, "onDataChange: not exists!");
                 }
             }
 

@@ -64,28 +64,9 @@ public class HomeFragment extends Fragment {
 
         binding.driverBtn.setOnClickListener(view1 -> navController.navigate(R.id.driverMapsFragment));
         binding.customerBtn.setOnClickListener(view1 -> navController.navigate(R.id.customerMapsFragment));
-        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        DatabaseReference userRef = MyConstants.DB_REF.child("user").child(currentUserId);
-        userRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    User user = snapshot.getValue(User.class);
-                    binding.userTV.setText(
-                            "User Name: " + user.getFirstName() +
-                                    "\nEmail: " + user.getEmail() +
-                                    "\nPhone: " + user.getPhoneNumber() +
-                                    "\nUser type: " + user.getUserType()
-                    );
-                }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
 
-            }
-        });
 
 
     }
@@ -100,6 +81,29 @@ public class HomeFragment extends Fragment {
         if (currentUser == null) {
             NavDirections navDirections = HomeFragmentDirections.actionHomeFragmentToSignInFragment();
             navController.navigate(navDirections);
+        }else {
+            String currentUserId = currentUser.getUid();
+
+            DatabaseReference userRef = MyConstants.DB_REF.child("user").child(currentUserId);
+            userRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        User user = snapshot.getValue(User.class);
+                        binding.userTV.setText(
+                                "User Name: " + user.getFirstName() +
+                                        "\nEmail: " + user.getEmail() +
+                                        "\nPhone: " + user.getPhoneNumber() +
+                                        "\nUser type: " + user.getUserType()
+                        );
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
         }
     }
 }

@@ -49,8 +49,6 @@ import com.hasan.uberclone.databinding.FragmentDriverMapsBinding;
 import com.hasan.uberclone.models.UserLocation;
 import com.hasan.uberclone.myConstants.MyConstants;
 
-import java.util.Map;
-
 public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
 
     private static final String TAG = "DriverMapsFragment";
@@ -119,6 +117,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void getAssignedCustomer() {
+        Log.d(TAG, "getAssignedCustomer: started");
         DatabaseReference assignedCustomerRef = MyConstants.DB_REF.child("RegisteredUserId")
                 .child("driver").child(currentDriverId).child("customerRideId");
         assignedCustomerRef.addValueEventListener(new ValueEventListener() {
@@ -126,6 +125,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     customerId = snapshot.getValue().toString();
+                    Log.d(TAG, "onDataChange: " + snapshot.getValue());
                     getAssignedCustomerPickupLocation();
                     /*Map<String, Object> map = (Map<String, Object>) snapshot.getValue();
                     if (map.get("customerRideId") != null) {
@@ -133,6 +133,8 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
 
                         getAssignedCustomerPickupLocation();
                     }*/
+                } else {
+                    Log.d(TAG, "onDataChange: not exists");
                 }
             }
 
@@ -144,6 +146,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void getAssignedCustomerPickupLocation() {
+        Log.d(TAG, "getAssignedCustomerPickupLocation: started");
         DatabaseReference assignCustomerPickupLocationRef = MyConstants.DB_REF.child("customerRequest").child(customerId);
         assignCustomerPickupLocationRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -156,6 +159,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
                         double longitude = requestLocation.getL().get(1);
 
                         LatLng latLng = new LatLng(latitude, longitude);
+                        Log.d(TAG, "Pickup Location: " + latitude + "," + longitude);
 
                         mMap.addMarker(new MarkerOptions().position(latLng).title("Pickup Location"));
                     }
@@ -233,7 +237,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
         }
 
-        // Fro available driver
+        // For available driver
         GeoFire geoFireDriverAvailable = new GeoFire(driverAvailableRef);
 
 
@@ -242,6 +246,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
         GeoFire geoFireDriverWorking = new GeoFire(driverWorkingRef);
 
 
+        Log.d(TAG, "customerId: " + customerId);
         switch (customerId){
             case "":
                 geoFireDriverWorking.removeLocation(currentDriverId, (key, error) -> Log.d(TAG, "onComplete: " + key + " geoFireDriverWorking removed"));
