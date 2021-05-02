@@ -61,8 +61,11 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
     private String currentDriverId;
     private DatabaseReference driverAvailableRef;
     private LocationRequest locationRequest;
-    private Marker userLocationMarker;
+    private Marker driverLocationMarker;
     private String customerId = "";
+    // canceling request
+    private Marker pickupMarker;
+
 
     LocationCallback locationCallback = new LocationCallback() {
         @Override
@@ -135,6 +138,12 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
                     }*/
                 } else {
                     Log.d(TAG, "onDataChange: not exists");
+                    customerId = "";
+                    if (pickupMarker != null) pickupMarker.remove();
+
+                    if (assignCustomerPickupLocationRefListener !=null){
+                        assignCustomerPickupLocationRef.removeEventListener(assignCustomerPickupLocationRefListener);
+                    }
                 }
             }
 
@@ -145,27 +154,30 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
+    DatabaseReference assignCustomerPickupLocationRef;
+    private ValueEventListener assignCustomerPickupLocationRefListener;
+
     private void getAssignedCustomerPickupLocation() {
         Log.d(TAG, "getAssignedCustomerPickupLocation: started");
-        DatabaseReference assignCustomerPickupLocationRef = MyConstants.DB_REF.child("customerRequest").child(customerId);
-        assignCustomerPickupLocationRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    UserLocation requestLocation = dataSnapshot.getValue(UserLocation.class);
-                    if (requestLocation != null) {
+        assignCustomerPickupLocationRef = MyConstants.DB_REF.child("customerRequest").child(customerId);
+        assignCustomerPickupLocationRefListener = assignCustomerPickupLocationRef
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists() && !customerId.equals("")) {
+                            UserLocation requestLocation = dataSnapshot.getValue(UserLocation.class);
+                            if (requestLocation != null) {
 
-                        double latitude = requestLocation.getL().get(0);
-                        double longitude = requestLocation.getL().get(1);
+                                double latitude = requestLocation.getL().get(0);
+                                double longitude = requestLocation.getL().get(1);
 
-                        LatLng latLng = new LatLng(latitude, longitude);
-                        Log.d(TAG, "Pickup Location: " + latitude + "," + longitude);
+                                LatLng latLng = new LatLng(latitude, longitude);
+                                Log.d(TAG, "Pickup Location: " + latitude + "," + longitude);
 
-                        mMap.addMarker(new MarkerOptions().position(latLng).title("Pickup Location"));
+                                pickupMarker = mMap.addMarker(new MarkerOptions().position(latLng).title("Pickup Location"));
+                            }
+                        }
                     }
-
-                }
-            }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
@@ -214,7 +226,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
 
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-        if (userLocationMarker == null) {
+        if (driverLocationMarker == null) {
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(latLng);
             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.car));
@@ -225,14 +237,14 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
             //location sign middle of the image
             // markerOptions.anchor((float) 0.5, (float) 0.5);
 
-            userLocationMarker = mMap.addMarker(markerOptions);
+            driverLocationMarker = mMap.addMarker(markerOptions);
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
 
         } else {
-            userLocationMarker.setPosition(latLng);
+            driverLocationMarker.setPosition(latLng);
 
             // direction of image
-            //userLocationMarker.setRotation(location.getBearing());
+            //driverLocationMarker.setRotation(location.getBearing());
 
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
         }

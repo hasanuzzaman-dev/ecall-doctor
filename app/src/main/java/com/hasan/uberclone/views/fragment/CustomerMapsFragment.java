@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
@@ -138,12 +139,14 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
 
                 //remove customer request
                 GeoFire geoFire = new GeoFire(customerRequestRef);
-                geoFire.removeLocation(currentUserId);
+                geoFire.removeLocation(currentUserId,(key, error) -> Log.d(TAG, "removeLocation"));
 
                 // remove marker
-                if (pickupMarker != null) {
+                if (pickupMarker != null && driverMarker != null) {
                     pickupMarker.remove();
+                    driverMarker.remove();
                 }
+                binding.requestUberBtn.setText("Call Uber");
 
 
             } else {
@@ -213,6 +216,10 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
             public void onGeoQueryReady() {
                 if (!driverFound){
                     radius++;
+                    Log.d(TAG, "onGeoQueryReady: radius"+radius);
+                    /*if (radius > 10){
+                        radius = 1;
+                    }*/
                     getClosestDriver();
                 }
 
