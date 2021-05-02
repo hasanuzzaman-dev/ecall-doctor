@@ -56,6 +56,7 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
 
 
     private static final String TAG = "CustomerMapsFragment";
+
     private FusedLocationProviderClient fusedLocationProviderClient;
     private int LOCATION_REQUEST_CODE = 1001;
     private Context context;
@@ -68,7 +69,16 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
     private FragmentCustomerMapsBinding binding;
     private Location lastLocation;
     private LatLng pickupLatLng;
+    private boolean requestBool = false;
 
+    // Closest driver
+    private int radius = 1;
+    private boolean driverFound = false;
+    private String driverFoundId;
+    private GeoQuery geoQueryClosestDriver;
+
+    //pickup
+    private Marker pickupMarker;
 
 
     @Override
@@ -109,50 +119,79 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
 
 
         binding.requestUberBtn.setOnClickListener(view1 -> {
-            GeoFire geoFire = new GeoFire(customerRequestRef);
-            geoFire.setLocation(
-                    currentUserId,
-                    new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()),
-                    new GeoFire.CompletionListener() {
-                        @Override
-                        public void onComplete(String key, DatabaseError error) {
-                            Log.d(TAG, "lastLocation: latitude "+lastLocation.getLatitude()+" longitude "+lastLocation.getLongitude());
+
+            if (requestBool) {
+                requestBool = false;
+                geoQueryClosestDriver.removeAllListeners();
+                driverLocationRef.removeEventListener(driverLocationRefListener);
+
+                // remove from driver ref
+                if (driverFoundId != null) {
+                    DatabaseReference driverFoundRef = MyConstants.DB_REF.child("RegisteredUserId").child("driver").child(driverFoundId);
+                    driverFoundRef.setValue(true);
+                    driverFoundId = null;
+                }
+
+                // set for the new request after canceling
+                driverFound = false;
+                radius = 1;
+
+                //remove customer request
+                GeoFire geoFire = new GeoFire(customerRequestRef);
+                geoFire.removeLocation(currentUserId);
+
+                // remove marker
+                if (pickupMarker != null) {
+                    pickupMarker.remove();
+                }
+
+
+            } else {
+                requestBool = true;
+                GeoFire geoFire = new GeoFire(customerRequestRef);
+                geoFire.setLocation(
+                        currentUserId,
+                        new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()),
+                        new GeoFire.CompletionListener() {
+                            @Override
+                            public void onComplete(String key, DatabaseError error) {
+                                Log.d(TAG, "lastLocation: latitude " + lastLocation.getLatitude() + " longitude " + lastLocation.getLongitude());
+                            }
                         }
-                    }
-            );
+                );
 
-            pickupLatLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-            mMap.addMarker(new MarkerOptions().position(pickupLatLng).title("Pickup here"));
-            binding.requestUberBtn.setText("Getting your Driver.........");
+                pickupLatLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+                pickupMarker = mMap.addMarker(new MarkerOptions().position(pickupLatLng).title("Pickup here"));
+                binding.requestUberBtn.setText("Getting your Driver.........");
 
-            getClosestDriver();
+                getClosestDriver();
+            }
+
         });
 
 
     }
 
-    private int radius = 1;
-    private boolean driverFound = false;
-    private String driverFoundId;
+
 
     private void getClosestDriver() {
         DatabaseReference driverAvailableRef = MyConstants.DB_REF.child("driverAvailable");
         GeoFire geoFire = new GeoFire(driverAvailableRef);
 
-        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()),radius);
-        geoQuery.removeAllListeners();
+        geoQueryClosestDriver = geoFire.queryAtLocation(new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()), radius);
+        geoQueryClosestDriver.removeAllListeners();
 
-        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+        geoQueryClosestDriver.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
-                if (!driverFound){
+                if (!driverFound && requestBool) {
                     driverFound = true;
                     driverFoundId = key;
 
                     // Tell the driver which customer you must pickup
                     DatabaseReference driverFoundRef = MyConstants.DB_REF.child("RegisteredUserId").child("driver").child(driverFoundId);
                     HashMap map = new HashMap();
-                    map.put("customerRideId",currentUserId);
+                    map.put("customerRideId", currentUserId);
                     driverFoundRef.updateChildren(map);
 
                     getDriverLocation();
@@ -187,22 +226,24 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
     }
 
     private Marker driverMarker;
+    private DatabaseReference driverLocationRef;
+    private ValueEventListener driverLocationRefListener;
 
-    //Show driver location customer map
+    //Show driver location on customer map
     private void getDriverLocation() {
         Log.d(TAG, "driverFoundId: " + driverFoundId);
 
-        DatabaseReference driverLocationRef = MyConstants.DB_REF.child("driverWorking").child(driverFoundId).child("l");
-        driverLocationRef.addValueEventListener(new ValueEventListener() {
+        driverLocationRef = MyConstants.DB_REF.child("driverWorking").child(driverFoundId).child("l");
+        driverLocationRefListener = driverLocationRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
+                if (dataSnapshot.exists() && requestBool) {
                     List<Object> map = (List<Object>) dataSnapshot.getValue();
                     double driverLat = 0.0;
                     double driverLng = 0.0;
 
 
-                    if (map.get(0) != null){
+                    if (map.get(0) != null) {
                         driverLat = Double.parseDouble(map.get(0).toString());
                     }
                     if (map.get(1) != null) {
