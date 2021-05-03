@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Geocoder;
 import android.location.Location;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
@@ -18,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -38,6 +38,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -77,6 +78,7 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
     private boolean driverFound = false;
     private String driverFoundId;
     private GeoQuery geoQueryClosestDriver;
+    private GeoQueryEventListener geoQueryEventListener;
 
     //pickup
     private Marker pickupMarker;
@@ -124,7 +126,8 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
             if (requestBool) {
                 requestBool = false;
                 geoQueryClosestDriver.removeAllListeners();
-                driverLocationRef.removeEventListener(driverLocationRefListener);
+                if (driverLocationRefListener != null)
+                    driverLocationRef.removeEventListener(driverLocationRefListener);
 
                 // remove from driver ref
                 if (driverFoundId != null) {
@@ -164,7 +167,10 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
                 );
 
                 pickupLatLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-                pickupMarker = mMap.addMarker(new MarkerOptions().position(pickupLatLng).title("Pickup here"));
+                pickupMarker = mMap.addMarker(new MarkerOptions()
+                        .position(pickupLatLng)
+                        .title("Pickup here")
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pickup_marker)));
                 binding.requestUberBtn.setText("Getting your Driver.........");
 
                 getClosestDriver();
@@ -187,6 +193,7 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
         geoQueryClosestDriver.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
+                Log.d(TAG, "onKeyEntered: started");
                 if (!driverFound && requestBool) {
                     driverFound = true;
                     driverFoundId = key;
@@ -214,13 +221,29 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
 
             @Override
             public void onGeoQueryReady() {
-                if (!driverFound){
+                Log.d(TAG, "onGeoQueryReady: driverFound: "+driverFound);
+                if (!driverFound) {
                     radius++;
-                    Log.d(TAG, "onGeoQueryReady: radius"+radius);
-                    /*if (radius > 10){
+                    Log.d(TAG, "onGeoQueryReady: radius: " + radius);
+                    if (radius < 15) {
+                        getClosestDriver();
+                    }else {
+                        // remove from driver ref
+                        if (driverFoundId != null) {
+                            DatabaseReference driverFoundRef = MyConstants.DB_REF.child("RegisteredUserId").child("driver").child(driverFoundId);
+                            driverFoundRef.setValue(true);
+                            driverFoundId = null;
+                        }
+
+                        // set for the new request after canceling
+                        driverFound = false;
                         radius = 1;
-                    }*/
-                    getClosestDriver();
+
+                        //remove customer request
+                        GeoFire geoFire = new GeoFire(customerRequestRef);
+                        geoFire.removeLocation(currentUserId,(key, error) -> Log.d(TAG, "removeLocation"));
+                    }
+
                 }
 
             }
@@ -279,7 +302,12 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
                         binding.requestUberBtn.setText("Driver Found: " + distance);
                     }
 
-                    driverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng).title("Your Driver"));
+                    driverMarker = mMap.addMarker(
+                            new MarkerOptions().position(driverLatLng)
+                                    .title("Your Driver")
+                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.car))
+
+                    );
                 } else {
                     Log.d(TAG, "onDataChange: not exists!");
                 }

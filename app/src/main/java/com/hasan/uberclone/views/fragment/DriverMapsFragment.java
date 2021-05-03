@@ -174,7 +174,12 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
                                 LatLng latLng = new LatLng(latitude, longitude);
                                 Log.d(TAG, "Pickup Location: " + latitude + "," + longitude);
 
-                                pickupMarker = mMap.addMarker(new MarkerOptions().position(latLng).title("Pickup Location"));
+                                MarkerOptions pickupMarkerOptions = new MarkerOptions();
+                                pickupMarkerOptions.position(latLng)
+                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pickup_marker))
+                                        .title("Pickup Location");
+
+                                pickupMarker = mMap.addMarker(pickupMarkerOptions);
                             }
                         }
                     }
