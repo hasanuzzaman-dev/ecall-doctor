@@ -428,13 +428,13 @@ public class CustomerMapsFragment extends Fragment implements OnMapReadyCallback
         stopLocationUpdate();
 
 
-        GeoFire geoFire = new GeoFire(customerRequestRef);
+      /*  GeoFire geoFire = new GeoFire(customerRequestRef);
         geoFire.removeLocation(currentUserId, new GeoFire.CompletionListener() {
             @Override
             public void onComplete(String key, DatabaseError error) {
                 Log.d(TAG, "onComplete: Stopped");
             }
-        });
+        });*/
     }
 
 
