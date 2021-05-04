@@ -46,6 +46,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 import com.hasan.uberclone.R;
 import com.hasan.uberclone.databinding.FragmentDriverMapsBinding;
+import com.hasan.uberclone.models.User;
 import com.hasan.uberclone.models.UserLocation;
 import com.hasan.uberclone.myConstants.MyConstants;
 
@@ -130,6 +131,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
                     customerId = snapshot.getValue().toString();
                     Log.d(TAG, "onDataChange: " + snapshot.getValue());
                     getAssignedCustomerPickupLocation();
+                    getAssignedCustomerInfo(customerId);
                     /*Map<String, Object> map = (Map<String, Object>) snapshot.getValue();
                     if (map.get("customerRideId") != null) {
                         customerId = map.get("customerRideId").toString();
@@ -144,6 +146,9 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
                     if (assignCustomerPickupLocationRefListener !=null){
                         assignCustomerPickupLocationRef.removeEventListener(assignCustomerPickupLocationRefListener);
                     }
+                    binding.customerInfo.setVisibility(View.GONE);
+                    binding.customerNameTV.setText("");
+                    binding.customerPhoneTV.setText("");
                 }
             }
 
@@ -152,6 +157,27 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
 
             }
         });
+    }
+
+    private void getAssignedCustomerInfo(String customerId) {
+        binding.customerInfo.setVisibility(View.VISIBLE);
+        DatabaseReference userRef = MyConstants.DB_REF.child("user").child(customerId);
+        userRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    User user = snapshot.getValue(User.class);
+                   binding.customerNameTV.setText(user.getFirstName() + " "+user.getLastName());
+                   binding.customerPhoneTV.setText(user.getPhoneNumber());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
     }
 
     DatabaseReference assignCustomerPickupLocationRef;
