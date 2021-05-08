@@ -1,4 +1,4 @@
-package com.hasan.uberclone.views.fragment;
+package com.hasan.ecalldoctor.views.fragment;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -47,9 +46,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
-import com.hasan.uberclone.R;
-import com.hasan.uberclone.databinding.FragmentCustomerMapsBinding;
-import com.hasan.uberclone.myConstants.MyConstants;
+import com.hasan.ecalldoctor.R;
+import com.hasan.ecalldoctor.databinding.FragmentCustomerMapsBinding;
+import com.hasan.ecalldoctor.myConstants.MyConstants;
 
 import java.util.HashMap;
 import java.util.List;

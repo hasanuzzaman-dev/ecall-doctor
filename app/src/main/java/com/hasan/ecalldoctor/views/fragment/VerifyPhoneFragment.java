@@ -1,4 +1,4 @@
-package com.hasan.uberclone.views.fragment;
+package com.hasan.ecalldoctor.views.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -28,9 +28,9 @@ import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.annotations.NotNull;
-import com.hasan.uberclone.databinding.FragmentVerifyPhoneBinding;
-import com.hasan.uberclone.models.User;
-import com.hasan.uberclone.myConstants.MyConstants;
+import com.hasan.ecalldoctor.databinding.FragmentVerifyPhoneBinding;
+import com.hasan.ecalldoctor.models.User;
+import com.hasan.ecalldoctor.myConstants.MyConstants;
 
 import java.util.concurrent.TimeUnit;
 
@@ -213,11 +213,7 @@ public class VerifyPhoneFragment extends Fragment {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
                                         Log.d(TAG, "onComplete: " + user.toString());
-                                        if (user.getUserType().equals("customer")) {
-                                            databaseReference =  MyConstants.DB_REF.child("RegisteredUserId").child("customer").child(userId);
-                                        } else {
-                                            databaseReference =  MyConstants.DB_REF.child("RegisteredUserId").child("driver").child(userId);
-                                        }
+                                        databaseReference =  MyConstants.DB_REF.child("RegisteredUserId").child("driver").child(userId);
                                         databaseReference.setValue(true);
                                     }
                                 });

@@ -99,6 +99,7 @@
             android:hint="@string/hint_phone"
             app:endIconMode="clear_text"
             app:errorEnabled="true"
+            app:prefixText="+880"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/emailET">
@@ -138,7 +139,7 @@
 
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/dateOfBirth_textInput_edit_text"
+            android:id="@+id/dateOfBirth_TextInputLayout"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -154,10 +155,13 @@
             app:layout_constraintTop_toBottomOf="@+id/genderET">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dateOfBirthTextInputEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:imeOptions="actionNext"
-                android:inputType="phone" />
+                android:clickable="true"
+                android:focusable="false"
+                android:imeOptions="actionDone"
+                android:inputType="date"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
@@ -166,8 +170,8 @@
             android:layout_height="wrap_content"
             android:text="Accepting Legal &amp; Terms"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="@+id/dateOfBirth_textInput_edit_text"
-            app:layout_constraintTop_toBottomOf="@+id/dateOfBirth_textInput_edit_text" />
+            app:layout_constraintStart_toStartOf="@+id/dateOfBirth_TextInputLayout"
+            app:layout_constraintTop_toBottomOf="@+id/dateOfBirth_TextInputLayout" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/terms_and_condition_layout"

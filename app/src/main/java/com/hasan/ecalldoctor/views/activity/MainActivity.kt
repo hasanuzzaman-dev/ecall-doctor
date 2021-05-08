@@ -1,4 +1,4 @@
-package com.hasan.uberclone.views.activity
+package com.hasan.ecalldoctor.views.activity
 
 import android.os.Bundle
 import android.view.View
@@ -10,8 +10,8 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import com.hasan.uberclone.R
-import com.hasan.uberclone.databinding.ActivityMainBinding
+import com.hasan.ecalldoctor.R
+import com.hasan.ecalldoctor.databinding.ActivityMainBinding
 
 
 class MainActivity : AppCompatActivity() {
@@ -35,10 +35,16 @@ class MainActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { controller: NavController, destination: NavDestination, arguments: Bundle? ->
 
             with(binding){
-                if (destination.id == R.id.customerMapsFragment) {
-                    toolbar.visibility = View.GONE
-                } else {
-                    toolbar.visibility = View.VISIBLE
+                when (destination.id) {
+                    /*R.id.customerMapsFragment -> {
+                        toolbar.visibility = View.GONE
+                    }*/
+                    R.id.signInFragment -> {
+                        toolbar.visibility = View.GONE
+                    }
+                    else -> {
+                        toolbar.visibility = View.VISIBLE
+                    }
                 }
             }
 
@@ -52,3 +58,6 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 }
+// 5555215556
+// 5555215555
+// 5555215554

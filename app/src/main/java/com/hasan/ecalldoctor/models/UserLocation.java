@@ -1,5 +1,5 @@
 
-package com.hasan.uberclone.models;
+package com.hasan.ecalldoctor.models;
 
 import org.jetbrains.annotations.NotNull;
 

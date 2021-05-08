@@ -1,4 +1,4 @@
-package com.hasan.uberclone.models;
+package com.hasan.ecalldoctor.models;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -10,8 +10,10 @@ public class User implements Serializable {
     private String userType;
     private String firstName;
     private String lastName;
-    private String PhoneNumber;
-    private String Email;
+    private String phoneNumber;
+    private String email;
+    private String address;
+    private String bloodGroup;
     private String gender;
     private String dateOfBirth;
     private boolean termsAndCondition;
@@ -21,14 +23,16 @@ public class User implements Serializable {
     }
 
     public User(String userId, String userType, String firstName, String lastName,
-                String phoneNumber, String email, String gender,
-                String dateOfBirth, boolean termsAndCondition,boolean isNewRegistered) {
+                String phoneNumber, String email,String address, String bloodGroup, String gender,
+                String dateOfBirth, boolean termsAndCondition, boolean isNewRegistered) {
         this.userId = userId;
         this.userType = userType;
         this.firstName = firstName;
         this.lastName = lastName;
-        PhoneNumber = phoneNumber;
-        Email = email;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+        this.email = email;
+        this.bloodGroup = bloodGroup;
         this.gender = gender;
         this.dateOfBirth = dateOfBirth;
         this.termsAndCondition = termsAndCondition;
@@ -68,19 +72,35 @@ public class User implements Serializable {
     }
 
     public String getPhoneNumber() {
-        return PhoneNumber;
+        return phoneNumber;
     }
 
     public void setPhoneNumber(String phoneNumber) {
-        PhoneNumber = phoneNumber;
+        this.phoneNumber = phoneNumber;
     }
 
     public String getEmail() {
-        return Email;
+        return email;
     }
 
     public void setEmail(String email) {
-        Email = email;
+        this.email = email;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getBloodGroup() {
+        return bloodGroup;
+    }
+
+    public void setBloodGroup(String bloodGroup) {
+        this.bloodGroup = bloodGroup;
     }
 
     public String getGender() {
@@ -116,15 +136,17 @@ public class User implements Serializable {
     }
 
     @NotNull
+
     @Override
     public String toString() {
         return "User{" +
                 "userId='" + userId + '\'' +
-                ", userType=" + userType +
+                ", userType='" + userType + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", PhoneNumber='" + PhoneNumber + '\'' +
-                ", Email='" + Email + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", email='" + email + '\'' +
+                ", bloodGroup='" + bloodGroup + '\'' +
                 ", gender='" + gender + '\'' +
                 ", dateOfBirth='" + dateOfBirth + '\'' +
                 ", termsAndCondition=" + termsAndCondition +

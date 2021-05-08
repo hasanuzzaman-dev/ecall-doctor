@@ -10,31 +10,34 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.hbb20.CountryCodePicker
-            android:id="@+id/countryCodePicker"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <!--  <com.hbb20.CountryCodePicker
+              android:id="@+id/countryCodePicker"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
 
-            app:ccp_autoDetectCountry="true"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/phoneET"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.35" />
+              app:ccp_autoDetectCountry="true"
+              app:layout_constraintBottom_toBottomOf="parent"
+              app:layout_constraintEnd_toStartOf="@id/phoneET"
+              app:layout_constraintHorizontal_chainStyle="packed"
+              app:layout_constraintStart_toStartOf="parent"
+              app:layout_constraintTop_toTopOf="parent"
+              app:layout_constraintVertical_bias="0.35" />-->
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/phoneET"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="0dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Phone"
+            android:layout_margin="16dp"
             app:endIconMode="clear_text"
             app:errorEnabled="true"
-            app:layout_constraintBottom_toBottomOf="@+id/countryCodePicker"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/countryCodePicker"
-            app:layout_constraintTop_toTopOf="@+id/countryCodePicker">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias=".3"
+            app:prefixText="+880">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
@@ -64,6 +67,7 @@
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias=".2"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/nextBtn">
 
@@ -72,35 +76,30 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp"
-                android:text="Don't have an account ? SignUp as" />
+                android:text="Don't have an account ?" />
 
             <TextView
                 android:id="@+id/gotoUserSignUPFragmentTV"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="8dp"
-                android:text="User"
+                android:text=" SignUp"
                 android:textColor="@color/purple_500"
                 android:textStyle="bold|italic"
                 tools:ignore="OnClick" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:text="or" />
-
-            <TextView
-                android:id="@+id/gotoDriverSignUPFragmentTV"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="8dp"
-                android:text="Driver"
-                android:textColor="@color/purple_500"
-                android:textStyle="bold|italic" />
-
         </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progressbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/userSignUpLayout"
+            app:layout_constraintEnd_toEndOf="@+id/nextBtn"
+            app:layout_constraintStart_toStartOf="@+id/nextBtn"
+            app:layout_constraintTop_toBottomOf="@+id/nextBtn"
+            tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

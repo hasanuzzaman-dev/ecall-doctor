@@ -1,4 +1,4 @@
-package com.hasan.uberclone.views.fragment;
+package com.hasan.ecalldoctor.views.fragment;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -23,6 +23,8 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -40,15 +42,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
-import com.hasan.uberclone.R;
-import com.hasan.uberclone.databinding.FragmentDriverMapsBinding;
-import com.hasan.uberclone.models.User;
-import com.hasan.uberclone.models.UserLocation;
-import com.hasan.uberclone.myConstants.MyConstants;
+import com.hasan.ecalldoctor.R;
+import com.hasan.ecalldoctor.databinding.FragmentDriverMapsBinding;
+import com.hasan.ecalldoctor.models.User;
+import com.hasan.ecalldoctor.models.UserLocation;
+import com.hasan.ecalldoctor.myConstants.MyConstants;
 
 public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
 
@@ -66,6 +69,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
     private String customerId = "";
     // canceling request
     private Marker pickupMarker;
+    private NavController navController;
 
 
     LocationCallback locationCallback = new LocationCallback() {
@@ -103,8 +107,16 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
             mapFragment.getMapAsync(this);
         }
 
+        navController = Navigation.findNavController(view);
 
-        currentDriverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null){
+            currentDriverId = firebaseUser.getUid();
+            getAssignedCustomer(currentDriverId);
+        }
+
+
+
         driverAvailableRef = MyConstants.DB_REF.child("driverAvailable");
 
         geocoder = new Geocoder(context);
@@ -115,12 +127,12 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
 
-        getAssignedCustomer();
+
 
 
     }
 
-    private void getAssignedCustomer() {
+    private void getAssignedCustomer(String currentDriverId) {
         Log.d(TAG, "getAssignedCustomer: started");
         DatabaseReference assignedCustomerRef = MyConstants.DB_REF.child("RegisteredUserId")
                 .child("driver").child(currentDriverId).child("customerRideId");
@@ -202,8 +214,8 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
 
                                 MarkerOptions pickupMarkerOptions = new MarkerOptions();
                                 pickupMarkerOptions.position(latLng)
-                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pickup_marker))
-                                        .title("Pickup Location");
+                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker))
+                                        .title("Patient Location");
 
                                 pickupMarker = mMap.addMarker(pickupMarkerOptions);
                             }
@@ -260,7 +272,7 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
         if (driverLocationMarker == null) {
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(latLng);
-            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.car));
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.doctor));
 
             // direction of image
             //markerOptions.rotation(location.getBearing());
@@ -336,6 +348,11 @@ public class DriverMapsFragment extends Fragment implements OnMapReadyCallback {
     public void onStop() {
         super.onStop();
         stopLocationUpdate();
+
+      /*  FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser == null){
+            navController.navigate(R.id.action_driverMapsFragment_to_signInFragment);
+        }*/
 
 
        /* GeoFire geoFire = new GeoFire(driverAvailableRef);

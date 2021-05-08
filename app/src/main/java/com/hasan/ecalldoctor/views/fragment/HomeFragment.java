@@ -1,4 +1,4 @@
-package com.hasan.uberclone.views.fragment;
+package com.hasan.ecalldoctor.views.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -19,10 +19,10 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
-import com.hasan.uberclone.R;
-import com.hasan.uberclone.databinding.FragmentHomeBinding;
-import com.hasan.uberclone.models.User;
-import com.hasan.uberclone.myConstants.MyConstants;
+import com.hasan.ecalldoctor.R;
+import com.hasan.ecalldoctor.databinding.FragmentHomeBinding;
+import com.hasan.ecalldoctor.models.User;
+import com.hasan.ecalldoctor.myConstants.MyConstants;
 
 
 public class HomeFragment extends Fragment {
@@ -56,14 +56,14 @@ public class HomeFragment extends Fragment {
 
         navController = Navigation.findNavController(view);
 
-        binding.signOutBtn.setOnClickListener(view1 -> {
-            FirebaseAuth.getInstance().signOut();
-            NavDirections navDirections = HomeFragmentDirections.actionHomeFragmentToSignInFragment();
-            navController.navigate(navDirections);
-        });
-
-        binding.driverBtn.setOnClickListener(view1 -> navController.navigate(R.id.driverMapsFragment));
-        binding.customerBtn.setOnClickListener(view1 -> navController.navigate(R.id.customerMapsFragment));
+//        binding.signOutBtn.setOnClickListener(view1 -> {
+//            FirebaseAuth.getInstance().signOut();
+//            NavDirections navDirections = HomeFragmentDirections.actionHomeFragmentToSignInFragment();
+//            navController.navigate(navDirections);
+//        });
+//
+       binding.driverBtn.setOnClickListener(view1 -> navController.navigate(R.id.driverMapsFragment));
+//        binding.customerBtn.setOnClickListener(view1 -> navController.navigate(R.id.customerMapsFragment));
 
 
 
@@ -79,9 +79,9 @@ public class HomeFragment extends Fragment {
         firebaseAuth = FirebaseAuth.getInstance();
         currentUser = firebaseAuth.getCurrentUser();
         if (currentUser == null) {
-            NavDirections navDirections = HomeFragmentDirections.actionHomeFragmentToSignInFragment();
-            navController.navigate(navDirections);
-        }else {
+
+            navController.navigate(R.id.action_homeFragment_to_signInFragment);
+        }/*else {
             String currentUserId = currentUser.getUid();
 
             DatabaseReference userRef = MyConstants.DB_REF.child("user").child(currentUserId);
@@ -104,6 +104,6 @@ public class HomeFragment extends Fragment {
 
                 }
             });
-        }
+        }*/
     }
 }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Uber Clone</string>
+    <string name="app_name">Ecall Doctor</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="signOut">SignOut</string>
@@ -16,5 +16,16 @@
         <item>Male</item>
         <item>Female</item>
         <item>Others</item>
+    </string-array>
+
+    <string-array name="bloodGroupList">
+        <item>A+</item>
+        <item>A-</item>
+        <item>B+</item>
+        <item>B-</item>
+        <item>O+</item>
+        <item>O-</item>
+        <item>AB+</item>
+        <item>AB-</item>
     </string-array>
 </resources>
