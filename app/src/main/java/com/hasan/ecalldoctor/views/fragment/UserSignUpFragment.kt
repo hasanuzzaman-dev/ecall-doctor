@@ -47,7 +47,7 @@ class UserSignUpFragment : Fragment(R.layout.fragment_user_sign_up) {
                 user.firstName = firstName
                 user.lastName = lastName
                 user.email = email
-                user.phoneNumber = phoneNumber
+                user.phoneNumber = "+880$phoneNumber"
                 user.gender = gender
                 user.dateOfBirth = dateOfBirth
                 user.userType = inputType
